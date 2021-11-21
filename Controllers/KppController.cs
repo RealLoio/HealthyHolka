@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace HealthyHolka.Controllers
 {
-    [Route("api/[controller]/")]
+    [Route("api/[controller]/shift")]
     [ApiController]
     public class KppController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace HealthyHolka.Controllers
         }
 
         [HttpPost]
-        [Route("shiftStart/{employeeId}")]
+        [Route("start/{employeeId}")]
         public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTimeOffset startTime)
         {
             // TODO
@@ -41,7 +41,7 @@ namespace HealthyHolka.Controllers
         }
 
         [HttpPost]
-        [Route("shiftEnd/{employeeId}")]
+        [Route("end/{employeeId}")]
         public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTimeOffset endTime)
         {
             // TODO
