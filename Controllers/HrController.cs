@@ -1,5 +1,5 @@
-﻿using HealthyHolka.DataContext;
-using HealthyHolka.Models;
+﻿using HealthyHolka.Models;
+using HealthyHolka.DataContext;
 
 using System.Linq;
 using System.Threading.Tasks;

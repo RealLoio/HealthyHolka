@@ -24,10 +24,26 @@ namespace HealthyHolka.Controllers
         [Route("start/{employeeId}")]
         public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTimeOffset startTime)
         {
-            // TODO
-            // Check if there's employee with this id (throw error if false)
-            // Check if this employee null value in end time field (throw error if false)
-            // Check if employee came later than allowed (add +1 to fuck ups)
+            Employee employee = await _context.Employees.FindAsync(employeeId);
+
+            if (employee is null)
+            {
+                return BadRequest($"Employee with id:{employeeId} was not found!");
+            }
+
+            Shift openedShift = _context.Shifts
+                .Where(s => s.EmployeeId == employeeId)
+                .Where(s => s.End == null)
+                .FirstOrDefault();
+
+            if (openedShift is not null)
+            {
+                return BadRequest($"You can't start a new shift, close the last one that started on {openedShift.Start}!");
+            }
+
+            // TODO Check if employee came later than allowed (mark this shift as time violated)
+
+
             Shift newShift = new Shift()
             {
                 EmployeeId = employeeId,
@@ -35,8 +51,10 @@ namespace HealthyHolka.Controllers
                 End = null,
                 HoursWorked = 0
             };
+
             _context.Shifts.Add(newShift);
             await _context.SaveChangesAsync();
+
             return Ok();
         }
 
