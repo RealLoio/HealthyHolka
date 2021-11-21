@@ -28,7 +28,7 @@ namespace HealthyHolka.Controllers
             // Check if there's employee with this id (throw error if false)
             // Check if this employee null value in end time field (throw error if false)
             // Check if employee came later than allowed (add +1 to fuck ups)
-            var newShift = new Shift()
+            Shift newShift = new Shift()
             {
                 EmployeeId = employeeId,
                 Start = startTime,

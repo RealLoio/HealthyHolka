@@ -23,12 +23,20 @@ namespace HealthyHolka.Controllers
 
         [HttpGet]
         [Route("employees")]
-        public ActionResult<IEnumerable<Employee>> GetEmployees([FromQuery] bool showDisabled = false)
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees([FromQuery] bool showDisabled = false, int? positionId = null)
         {
-            return Ok(_context.Employees
+            Position position = await _context.Positions.FindAsync(positionId);
+
+            if (position is null) return BadRequest();
+
+            IQueryable<Employee> employees = _context.Employees
                 .Include(e => e.Position)
                 .Include(e => e.Shifts)
-                .Where(e => e.IsDeleted == false || e.IsDeleted == showDisabled));
+                .Where(e => e.IsDeleted == false || e.IsDeleted == showDisabled);
+
+            if (positionId is not null) employees = employees.Where(e => e.PositionId == positionId);
+
+            return Ok(employees);
         }
 
         [HttpGet]
@@ -42,6 +50,8 @@ namespace HealthyHolka.Controllers
         [Route("employees")]
         public async Task<ActionResult<Employee>> CreateEmployee([FromBody] Employee employee)
         {
+            // TODO
+            // Add includes to show Position 
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
             
@@ -53,7 +63,7 @@ namespace HealthyHolka.Controllers
         {
             if (id != employee.Id) return BadRequest();
 
-            var employeeToUpdate = await _context.Employees.FindAsync(id);
+            Employee employeeToUpdate = await _context.Employees.FindAsync(id);
 
             if (employeeToUpdate is null)
             {
@@ -62,7 +72,6 @@ namespace HealthyHolka.Controllers
 
             _context.Entry(employeeToUpdate).CurrentValues.SetValues(employee);
 
-            //_context.Employees.Update(employeeToUpdate);
             await _context.SaveChangesAsync();
             
             return Ok(employeeToUpdate);
@@ -71,7 +80,7 @@ namespace HealthyHolka.Controllers
         [HttpPost("employees/disable/{id}")]
         public async Task<ActionResult> Disable(int id)
         {
-            var employeeToDisable = await _context.Employees.FindAsync(id);
+            Employee employeeToDisable = await _context.Employees.FindAsync(id);
 
             if (employeeToDisable is null)
             {
