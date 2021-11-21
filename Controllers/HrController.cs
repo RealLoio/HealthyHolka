@@ -23,12 +23,12 @@ namespace HealthyHolka.Controllers
 
         [HttpGet]
         [Route("employees")]
-        public ActionResult<IEnumerable<Employee>> GetEmployees()
+        public ActionResult<IEnumerable<Employee>> GetEmployees([FromQuery] bool showDisabled = false)
         {
-            // TODO add optional field to filter employees if enabled/disabled (alternative to deleted)
             return Ok(_context.Employees
                 .Include(e => e.Position)
-                .Include(e => e.Shifts));
+                .Include(e => e.Shifts)
+                .Where(e => e.IsEnabled == true || e.IsEnabled == !showDisabled));
         }
 
         [HttpGet]
@@ -44,10 +44,11 @@ namespace HealthyHolka.Controllers
         {
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
+            
             return Ok(employee);
         }
 
-        [HttpPut("{id}")]
+        [HttpPost("employees/update/{id}")]
         public void Put(int id, [FromBody] Employee employee)
         {
             // TODO
@@ -56,12 +57,26 @@ namespace HealthyHolka.Controllers
             // Return updated employee
         }
 
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpPost("employees/disable/{id}")]
+        public async Task<ActionResult> Disable(int id)
         {
-            // TODO
-            // Check if there's employee with this id (throw error if false)
-            // Disable this employee instead of deleting him
+            var employeeToDisable = await _context.Employees.FindAsync(id);
+
+            if (employeeToDisable is null)
+            {
+                return BadRequest();
+            }
+            if (!employeeToDisable.IsEnabled)
+            {
+                return BadRequest();
+            }
+
+            employeeToDisable.IsEnabled = false;
+
+            _context.Employees.Update(employeeToDisable);
+            await _context.SaveChangesAsync();
+            
+            return Ok();
         }
     }
 }

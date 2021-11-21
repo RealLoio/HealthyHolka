@@ -3,12 +3,12 @@
 namespace HealthyHolka.Models
 {
     [Table("position")]
-    public record Position
+    public class Position
     { 
         [Column("id")]
-        public int Id { get; init; }
+        public int Id { get; set; }
 
         [Column("name", TypeName = "nvarchar(20)")]
-        public string Name { get; init; }
+        public string Name { get; set; }
     }
 }
