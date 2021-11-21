@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace HealthyHolka.Controllers
 {
@@ -50,9 +51,7 @@ namespace HealthyHolka.Controllers
         [Route("employees")]
         public async Task<ActionResult<Employee>> CreateEmployee([FromBody] Employee employee)
         {
-            // TODO
-            // Add includes to show Position 
-            _context.Employees.Add(employee);
+            await _context.Employees.Add(employee).Reference(e => e.Position).LoadAsync();
             await _context.SaveChangesAsync();
             
             return Ok(employee);
@@ -70,7 +69,11 @@ namespace HealthyHolka.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(employeeToUpdate).CurrentValues.SetValues(employee);
+            EntityEntry<Employee> entry = _context.Entry(employeeToUpdate);
+
+            await entry.Reference(e => e.Position).LoadAsync();
+
+            entry.CurrentValues.SetValues(employee);
 
             await _context.SaveChangesAsync();
             
