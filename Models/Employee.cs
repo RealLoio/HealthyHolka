@@ -29,7 +29,7 @@ namespace HealthyHolka.Models
 
         public List<Shift> Shifts { get; set; } = new List<Shift>();
 
-        [Column("is_enabled")]
-        public bool IsEnabled { get; set; }
+        [Column("is_deleted")]
+        public bool IsDeleted { get; set; }
     }
 }
