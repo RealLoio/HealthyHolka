@@ -1,13 +1,11 @@
 ﻿using HealthyHolka.DataContext;
 using HealthyHolka.Models;
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace HealthyHolka.Controllers
@@ -24,16 +22,16 @@ namespace HealthyHolka.Controllers
 
         [HttpGet]
         [Route("employees")]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees([FromQuery] bool showDisabled = false, int? positionId = null)
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees([FromQuery] bool showDeleted = false, [FromQuery] int? positionId = null)
         {
             Position position = await _context.Positions.FindAsync(positionId);
 
-            if (position is null) return BadRequest();
+            if (position is null) return BadRequest($"Position with id:{positionId} was not found!");
 
             IQueryable<Employee> employees = _context.Employees
                 .Include(e => e.Position)
                 .Include(e => e.Shifts)
-                .Where(e => e.IsDeleted == false || e.IsDeleted == showDisabled);
+                .Where(e => e.IsDeleted == false || e.IsDeleted == showDeleted);
 
             if (positionId is not null) employees = employees.Where(e => e.PositionId == positionId);
 
@@ -60,13 +58,16 @@ namespace HealthyHolka.Controllers
         [HttpPost("employees/update/{id}")]
         public async Task<ActionResult<Employee>> UpdateEmployee(int id, [FromBody] Employee employee)
         {
-            if (id != employee.Id) return BadRequest();
+            if (id != employee.Id)
+            {
+                return BadRequest($"Passed id:{id} does not match id from json:{employee.Id}!");
+            }
 
             Employee employeeToUpdate = await _context.Employees.FindAsync(id);
 
             if (employeeToUpdate is null)
             {
-                return BadRequest();
+                return BadRequest($"Employee with id:{id} was not found!");
             }
 
             EntityEntry<Employee> entry = _context.Entry(employeeToUpdate);
@@ -87,11 +88,11 @@ namespace HealthyHolka.Controllers
 
             if (employeeToDisable is null)
             {
-                return BadRequest();
+                return BadRequest($"Employee with id:{id} was not found!");
             }
             if (employeeToDisable.IsDeleted)
             {
-                return BadRequest();
+                return BadRequest($"Employee with id:{id} is already deleted!");
             }
 
             employeeToDisable.IsDeleted = true;
