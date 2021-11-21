@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HealthyHolka.Models
@@ -9,15 +10,18 @@ namespace HealthyHolka.Models
         [Column("id")]
         public int Id { get; init; }
 
+        [Required]
         [Column("last_name", TypeName = "nvarchar(50)")]
         public string LastName { get; init; }
 
+        [Required]
         [Column("first_name", TypeName = "nvarchar(50)")]
         public string FirstName { get; init; }
 
         [Column("middle_name", TypeName = "nvarchar(50)")]
         public string MiddleName { get; init; }
 
+        [Required]
         [Column("position_id")]
         public int PositionId { get; init; }
 
