@@ -38,11 +38,10 @@ namespace HealthyHolka.Controllers
 
             if (openedShift is not null)
             {
-                return BadRequest($"You can't start a new shift, close the last one that started on {openedShift.Start}!");
+                return BadRequest($"Can't start shift for employee with id:{employeeId}, there's an open shift from {openedShift.Start}!");
             }
 
             // TODO Check if employee came later than allowed (mark this shift as time violated)
-
 
             Shift newShift = new Shift()
             {
@@ -62,12 +61,28 @@ namespace HealthyHolka.Controllers
         [Route("end/{employeeId}")]
         public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTimeOffset endTime)
         {
-            // TODO
-            // Check if there's employee with this id (throw error if false)
-            // Check if employees shift exists (throw error if false)
-            // Find shift and update with end time
-            // Update employees hours worked
-            // Check if employee left earlier than allowed (add +1 to fuck ups)
+            Employee employee = await _context.Employees.FindAsync(employeeId);
+
+            if (employee is null)
+            {
+                return BadRequest($"Employee with id:{employeeId} was not found!");
+            }
+
+            Shift openedShift = _context.Shifts
+                .Where(s => s.EmployeeId == employeeId)
+                .Where(s => s.End == null)
+                .FirstOrDefault();
+
+            if (openedShift is null)
+            {
+                return BadRequest($"Employee with id:{employeeId} has no shifts to end!");
+            }
+
+            openedShift.End = endTime;
+            openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
+
+            // TODO Check if employee left earlier than allowed (add +1 to fuck ups)
+
             return Ok();
         }
     }
