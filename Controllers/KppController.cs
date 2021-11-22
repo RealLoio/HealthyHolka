@@ -75,6 +75,7 @@ namespace HealthyHolka.Controllers
 
             openedShift.End = endTime;
             openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
+            await _context.SaveChangesAsync();
 
             // TODO Check if employee left earlier than allowed (add +1 to fuck ups)
 

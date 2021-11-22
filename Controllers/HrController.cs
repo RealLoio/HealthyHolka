@@ -108,7 +108,6 @@ namespace HealthyHolka.Controllers
             }
 
             employeeToDelete.IsDeleted = true;
-            _context.Employees.Update(employeeToDelete);
             await _context.SaveChangesAsync();
             
             return Ok();
