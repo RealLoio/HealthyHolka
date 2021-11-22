@@ -25,7 +25,6 @@ namespace HealthyHolka.Controllers
         public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTimeOffset startTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
-
             if (employee is null)
             {
                 return BadRequest($"Employee with id:{employeeId} was not found!");
@@ -35,7 +34,6 @@ namespace HealthyHolka.Controllers
                 .Where(s => s.EmployeeId == employeeId)
                 .Where(s => s.End == null)
                 .FirstOrDefault();
-
             if (openedShift is not null)
             {
                 return BadRequest($"Can't start shift for employee with id:{employeeId}, there's an open shift from {openedShift.Start}!");
@@ -50,7 +48,6 @@ namespace HealthyHolka.Controllers
                 End = null,
                 HoursWorked = 0
             };
-
             _context.Shifts.Add(newShift);
             await _context.SaveChangesAsync();
 
@@ -62,7 +59,6 @@ namespace HealthyHolka.Controllers
         public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTimeOffset endTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
-
             if (employee is null)
             {
                 return BadRequest($"Employee with id:{employeeId} was not found!");
@@ -72,7 +68,6 @@ namespace HealthyHolka.Controllers
                 .Where(s => s.EmployeeId == employeeId)
                 .Where(s => s.End == null)
                 .FirstOrDefault();
-
             if (openedShift is null)
             {
                 return BadRequest($"Employee with id:{employeeId} has no shifts to end!");

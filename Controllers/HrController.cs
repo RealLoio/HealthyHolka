@@ -32,7 +32,6 @@ namespace HealthyHolka.Controllers
             if (positionId is not null)
             {
                 Position position = await _context.Positions.FindAsync(positionId);
-
                 if (position is null)
                 {
                     return BadRequest($"Position with id:{positionId} was not found!");
@@ -55,6 +54,12 @@ namespace HealthyHolka.Controllers
         [Route("employees")]
         public async Task<ActionResult<Employee>> CreateEmployee([FromBody] Employee employee)
         {
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            if (position is null)
+            {
+                return BadRequest($"Position with id:{employee.PositionId} was not found!");
+            }
+
             await _context.Employees.Add(employee).Reference(e => e.Position).LoadAsync();
             await _context.SaveChangesAsync();
             
@@ -70,18 +75,20 @@ namespace HealthyHolka.Controllers
             }
 
             Employee employeeToUpdate = await _context.Employees.FindAsync(id);
-
             if (employeeToUpdate is null)
             {
                 return BadRequest($"Employee with id:{id} was not found!");
             }
 
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            if (position is null)
+            {
+                return BadRequest($"Position with id:{employee.PositionId} was not found!");
+            }
+
             EntityEntry<Employee> entry = _context.Entry(employeeToUpdate);
-
-            await entry.Reference(e => e.Position).LoadAsync();
-
             entry.CurrentValues.SetValues(employee);
-
+            await entry.Reference(e => e.Position).LoadAsync();
             await _context.SaveChangesAsync();
             
             return Ok(employeeToUpdate);
@@ -91,7 +98,6 @@ namespace HealthyHolka.Controllers
         public async Task<ActionResult> Disable(int id)
         {
             Employee employeeToDisable = await _context.Employees.FindAsync(id);
-
             if (employeeToDisable is null)
             {
                 return BadRequest($"Employee with id:{id} was not found!");
@@ -102,7 +108,6 @@ namespace HealthyHolka.Controllers
             }
 
             employeeToDisable.IsDeleted = true;
-
             _context.Employees.Update(employeeToDisable);
             await _context.SaveChangesAsync();
             
