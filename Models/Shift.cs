@@ -9,10 +9,10 @@ namespace HealthyHolka.Models
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("started_on")]
+        [Column("started_on", TypeName = "datetime")]
         public DateTimeOffset Start { get; set; }
 
-        [Column("ended_on")]
+        [Column("ended_on", TypeName = "datetime")]
         public DateTimeOffset? End { get; set; }
 
         [Column("hours_worked")]
