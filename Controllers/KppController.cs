@@ -24,7 +24,7 @@ namespace HealthyHolka.Controllers
         public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTime startTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
-            if (employee is null)
+            if (employee is null || employee.IsDeleted)
             {
                 return BadRequest($"Employee with id:{employeeId} was not found!");
             }
@@ -56,11 +56,10 @@ namespace HealthyHolka.Controllers
         public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTime endTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
-            if (employee is null)
+            if (employee is null || employee.IsDeleted)
             {
                 return BadRequest($"Employee with id:{employeeId} was not found!");
             }
-
             
             if (HasOpenedShift(employeeId, out Shift openedShift))
             {
@@ -69,7 +68,6 @@ namespace HealthyHolka.Controllers
 
             openedShift.End = endTime;
             openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
-
             
             if (await IsEmployeeLeftEarly(employee, endTime, openedShift))
             {
