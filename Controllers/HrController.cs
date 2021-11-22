@@ -1,6 +1,7 @@
 ﻿using HealthyHolka.Models;
 using HealthyHolka.DataContext;
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,8 @@ namespace HealthyHolka.Controllers
 
                 employees = employees.Where(e => e.PositionId == positionId);
             }
+
+            await employees.ForEachAsync(e => e.PenaltiesThisMonth = e.Shifts.Where(s => s.Start.Month == DateTime.Today.Month).Sum(s => s.TimesViolated));
 
             return Ok(employees);
         }

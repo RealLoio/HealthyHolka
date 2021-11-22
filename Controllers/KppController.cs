@@ -48,7 +48,7 @@ namespace HealthyHolka.Controllers
 
             Position position = await _context.Positions.FindAsync(employee.PositionId);
             DateTime calculatedStartTime = startTime.Date.Add(position.StartingHour);
-            if (startTime.CompareTo(calculatedStartTime) >= 0)
+            if (startTime.CompareTo(calculatedStartTime) > 0)
             {
                 newShift.TimesViolated++;
             }
@@ -85,7 +85,7 @@ namespace HealthyHolka.Controllers
             DateTime calculatedEndTime = openedShift.Start.Date
                 .Add(position.StartingHour)
                 .Add(position.RequiredWorkHours);
-            if (endTime.CompareTo(calculatedEndTime) <= 0)
+            if (endTime.CompareTo(calculatedEndTime) < 0)
             {
                 openedShift.TimesViolated++;
             }

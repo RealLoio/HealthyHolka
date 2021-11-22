@@ -31,5 +31,8 @@ namespace HealthyHolka.Models
 
         [Column("is_deleted")]
         public bool IsDeleted { get; set; }
+
+        [NotMapped]
+        public int PenaltiesThisMonth { get; set; }
     }
 }
