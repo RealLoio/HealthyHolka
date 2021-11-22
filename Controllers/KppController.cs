@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthyHolka.Controllers
 {
@@ -28,11 +29,7 @@ namespace HealthyHolka.Controllers
                 return BadRequest($"Employee with id:{employeeId} was not found!");
             }
 
-            Shift openedShift = _context.Shifts
-                .Where(s => s.EmployeeId == employeeId)
-                .Where(s => s.End == null)
-                .FirstOrDefault();
-            if (openedShift is not null)
+            if (!HasOpenedShift(employeeId, out Shift openedShift))
             {
                 return BadRequest($"Can't start shift for employee with id:{employeeId}, there's an open shift from {openedShift.Start}!");
             }
@@ -43,9 +40,7 @@ namespace HealthyHolka.Controllers
                 Start = startTime
             };
 
-            Position position = await _context.Positions.FindAsync(employee.PositionId);
-            DateTime requiredStartTime = startTime.Date.Add(position.StartingHour);
-            if (startTime.CompareTo(requiredStartTime) > 0)
+            if (await IsEmployeeCameLate(employee, startTime))
             {
                 newShift.TimesViolated++;
             }
@@ -66,11 +61,8 @@ namespace HealthyHolka.Controllers
                 return BadRequest($"Employee with id:{employeeId} was not found!");
             }
 
-            Shift openedShift = _context.Shifts
-                .Where(s => s.EmployeeId == employeeId)
-                .Where(s => s.End == null)
-                .FirstOrDefault();
-            if (openedShift is null)
+            
+            if (HasOpenedShift(employeeId, out Shift openedShift))
             {
                 return BadRequest($"Employee with id:{employeeId} has no shifts to end!");
             }
@@ -78,11 +70,8 @@ namespace HealthyHolka.Controllers
             openedShift.End = endTime;
             openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
 
-            Position position = await _context.Positions.FindAsync(employee.PositionId);
-            DateTime requiredEndTime = openedShift.Start.Date
-                .Add(position.StartingHour)
-                .Add(position.RequiredWorkHours);
-            if (endTime.CompareTo(requiredEndTime) < 0)
+            
+            if (await IsEmployeeLeftEarly(employee, endTime, openedShift))
             {
                 openedShift.TimesViolated++;
             }
@@ -91,5 +80,35 @@ namespace HealthyHolka.Controllers
 
             return Ok();
         }
+
+        #region Private methods
+        private bool HasOpenedShift(int employeeId, out Shift openedShift)
+        {
+            openedShift = _context.Shifts
+                .Where(s => s.EmployeeId == employeeId)
+                .Where(s => s.End == null)
+                .Include(s => s.Employee)
+                .FirstOrDefault();
+            return openedShift is null ? false : true;
+        }
+
+        private async Task<bool> IsEmployeeCameLate(Employee employee, DateTime startTime)
+        {
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            DateTime requiredTime = startTime.Date.Add(position.StartingHour);
+            
+            return startTime.CompareTo(requiredTime) > 0 ? true : false;
+        }
+
+        private async Task<bool> IsEmployeeLeftEarly(Employee employee, DateTime endTime, Shift openedShift)
+        {
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            DateTime requiredEndTime = openedShift.Start.Date
+                .Add(position.StartingHour)
+                .Add(position.RequiredWorkHours);
+
+            return endTime.CompareTo(requiredEndTime) < 0 ? true : false;
+        }
+        #endregion
     }
 }
