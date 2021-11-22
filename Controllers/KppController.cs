@@ -2,6 +2,7 @@
 using HealthyHolka.Models;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace HealthyHolka.Controllers
 
         [HttpPost]
         [Route("start/{employeeId}")]
-        public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTimeOffset startTime)
+        public async Task<ActionResult> StartShift(int employeeId, [FromQuery] DateTime startTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
             if (employee is null)
@@ -39,15 +40,19 @@ namespace HealthyHolka.Controllers
                 return BadRequest($"Can't start shift for employee with id:{employeeId}, there's an open shift from {openedShift.Start}!");
             }
 
-            // TODO Check if employee came later than allowed (mark this shift as time violated)
-
             Shift newShift = new Shift()
             {
                 EmployeeId = employeeId,
-                Start = startTime,
-                End = null,
-                HoursWorked = 0
+                Start = startTime
             };
+
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            DateTime calculatedStartTime = startTime.Date.Add(position.StartingHour);
+            if (startTime.CompareTo(calculatedStartTime) >= 0)
+            {
+                newShift.TimesViolated++;
+            }
+
             _context.Shifts.Add(newShift);
             await _context.SaveChangesAsync();
 
@@ -56,7 +61,7 @@ namespace HealthyHolka.Controllers
 
         [HttpPost]
         [Route("end/{employeeId}")]
-        public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTimeOffset endTime)
+        public async Task<ActionResult> EndShift(int employeeId, [FromQuery] DateTime endTime)
         {
             Employee employee = await _context.Employees.FindAsync(employeeId);
             if (employee is null)
@@ -75,9 +80,17 @@ namespace HealthyHolka.Controllers
 
             openedShift.End = endTime;
             openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
-            await _context.SaveChangesAsync();
 
-            // TODO Check if employee left earlier than allowed (add +1 to fuck ups)
+            Position position = await _context.Positions.FindAsync(employee.PositionId);
+            DateTime calculatedEndTime = openedShift.Start.Date
+                .Add(position.StartingHour)
+                .Add(position.RequiredWorkHours);
+            if (endTime.CompareTo(calculatedEndTime) <= 0)
+            {
+                openedShift.TimesViolated++;
+            }
+
+            await _context.SaveChangesAsync();
 
             return Ok();
         }

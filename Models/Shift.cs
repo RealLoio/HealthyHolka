@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HealthyHolka.Models
@@ -10,10 +11,10 @@ namespace HealthyHolka.Models
         public int Id { get; set; }
 
         [Column("started_on", TypeName = "datetime")]
-        public DateTimeOffset Start { get; set; }
+        public DateTime Start { get; set; }
 
         [Column("ended_on", TypeName = "datetime")]
-        public DateTimeOffset? End { get; set; }
+        public DateTime? End { get; set; }
 
         [Column("hours_worked")]
         public int HoursWorked { get; set; }
@@ -22,5 +23,8 @@ namespace HealthyHolka.Models
         public int EmployeeId { get; set; }
 
         public Employee Employee { get; set; }
+
+        [Column("times_violated")]
+        public int TimesViolated { get; set; }
     }
 }
