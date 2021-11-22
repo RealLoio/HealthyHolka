@@ -1,13 +1,10 @@
-﻿using HealthyHolka.DataContext;
-using HealthyHolka.Models;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using HealthyHolka.Models;
+using HealthyHolka.DataContext;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HealthyHolka.Controllers
 {
@@ -47,8 +44,8 @@ namespace HealthyHolka.Controllers
             };
 
             Position position = await _context.Positions.FindAsync(employee.PositionId);
-            DateTime calculatedStartTime = startTime.Date.Add(position.StartingHour);
-            if (startTime.CompareTo(calculatedStartTime) > 0)
+            DateTime requiredStartTime = startTime.Date.Add(position.StartingHour);
+            if (startTime.CompareTo(requiredStartTime) > 0)
             {
                 newShift.TimesViolated++;
             }
@@ -82,10 +79,10 @@ namespace HealthyHolka.Controllers
             openedShift.HoursWorked = (int)endTime.Subtract(openedShift.Start).TotalHours;
 
             Position position = await _context.Positions.FindAsync(employee.PositionId);
-            DateTime calculatedEndTime = openedShift.Start.Date
+            DateTime requiredEndTime = openedShift.Start.Date
                 .Add(position.StartingHour)
                 .Add(position.RequiredWorkHours);
-            if (endTime.CompareTo(calculatedEndTime) < 0)
+            if (endTime.CompareTo(requiredEndTime) < 0)
             {
                 openedShift.TimesViolated++;
             }
