@@ -24,16 +24,22 @@ namespace HealthyHolka.Controllers
         [Route("employees")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees([FromQuery] bool showDeleted = false, [FromQuery] int? positionId = null)
         {
-            Position position = await _context.Positions.FindAsync(positionId);
-
-            if (position is null) return BadRequest($"Position with id:{positionId} was not found!");
-
             IQueryable<Employee> employees = _context.Employees
                 .Include(e => e.Position)
                 .Include(e => e.Shifts)
                 .Where(e => e.IsDeleted == false || e.IsDeleted == showDeleted);
 
-            if (positionId is not null) employees = employees.Where(e => e.PositionId == positionId);
+            if (positionId is not null)
+            {
+                Position position = await _context.Positions.FindAsync(positionId);
+
+                if (position is null)
+                {
+                    return BadRequest($"Position with id:{positionId} was not found!");
+                }
+
+                employees = employees.Where(e => e.PositionId == positionId);
+            }
 
             return Ok(employees);
         }
