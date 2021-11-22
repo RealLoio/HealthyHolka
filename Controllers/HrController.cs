@@ -94,21 +94,21 @@ namespace HealthyHolka.Controllers
             return Ok(employeeToUpdate);
         }
 
-        [HttpPost("employees/disable/{id}")]
-        public async Task<ActionResult> Disable(int id)
+        [HttpPost("employees/delete/{id}")]
+        public async Task<ActionResult> DeleteEmployee(int id)
         {
-            Employee employeeToDisable = await _context.Employees.FindAsync(id);
-            if (employeeToDisable is null)
+            Employee employeeToDelete = await _context.Employees.FindAsync(id);
+            if (employeeToDelete is null)
             {
                 return BadRequest($"Employee with id:{id} was not found!");
             }
-            if (employeeToDisable.IsDeleted)
+            if (employeeToDelete.IsDeleted)
             {
                 return BadRequest($"Employee with id:{id} is already deleted!");
             }
 
-            employeeToDisable.IsDeleted = true;
-            _context.Employees.Update(employeeToDisable);
+            employeeToDelete.IsDeleted = true;
+            _context.Employees.Update(employeeToDelete);
             await _context.SaveChangesAsync();
             
             return Ok();
